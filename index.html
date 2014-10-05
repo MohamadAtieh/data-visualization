@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Data visualization in the Arab World</title>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="css/style.css">
+
+        <script type="text/javascript" src="js/lib/gl-matrix/common.js"></script>
+        <script type="text/javascript" src="js/lib/gl-matrix/mat4.js"></script>
+        <script type="text/javascript" src="js/lib/webgl-utils.js"></script>
+        <script type="text/javascript" src="js/utils.js"></script>
+        <script type="text/javascript" src="js/planet.js"></script>
+        <script type="text/javascript" src="js/graphics.js"></script>
+
+        <script id="vertex-shader" type="x-shader/x-vertex">
+            attribute vec3 position;
+
+            uniform mat4 modelview_matrix;
+            uniform mat4 projection_matrix;
+
+            void main(void)
+            {
+                gl_Position = projection_matrix * modelview_matrix * vec4(position, 1.0);
+            }
+        </script>
+
+        <script id="fragment-shader" type="x-shader/x-fragment">
+            precision mediump float;
+
+            void main(void)
+            {
+                gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+            }
+        </script>
+
+    </head>
+
+    <body onload="execute();">
+        <div id="sidebar">
+            Menu<br/>
+            Select<br/>
+            Toggle<br/>
+        </div>
+
+        <canvas id="canvas"></canvas>
+    </body>
+</html>
