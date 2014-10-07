@@ -35,7 +35,13 @@ var utils = (function() {
         return shader;
     }
 
+    function deg_to_rad(degrees)
+    {
+        return degrees * Math.PI / 180; 
+    }
+
     return {
-        get_shader: get_shader
+        get_shader: get_shader,
+        deg_to_rad: deg_to_rad
     };
 })();

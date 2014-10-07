@@ -25,6 +25,17 @@ html, body
 #sidebar
 {
     position: absolute;
+    margin: 10px;
     z-index: 1;
+    color: white;
+}
+
+
+footer
+{
+    position: fixed;
+    font-size: 12px;
+    left: 10px;
+    bottom: 10px;
     color: white;
 }

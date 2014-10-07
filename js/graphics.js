@@ -3,6 +3,7 @@ var canvas;
 var shader_program;
 
 var projection_matrix = mat4.create();
+var view_matrix = mat4.create();
 
 var planet;
 
@@ -24,11 +25,24 @@ function initialize_shaders()
 
     gl.useProgram(shader_program);
 
-    shader_program.vertexPositionAttribute = gl.getAttribLocation(shader_program, "position");
-    gl.enableVertexAttribArray(shader_program.vertexPositionAttribute);
+    shader_program.position = gl.getAttribLocation(shader_program, "position");
+    gl.enableVertexAttribArray(shader_program.position);
 
-    shader_program.pMatrixUniform = gl.getUniformLocation(shader_program, "projection_matrix");
-    shader_program.mvMatrixUniform = gl.getUniformLocation(shader_program, "modelview_matrix");
+    shader_program.normal = gl.getAttribLocation(shader_program, "normal");
+    gl.enableVertexAttribArray(shader_program.normal);
+
+    shader_program.projection_matrix = gl.getUniformLocation(shader_program, "projection_matrix");
+    shader_program.view_matrix = gl.getUniformLocation(shader_program, "view_matrix");
+    shader_program.model_matrix = gl.getUniformLocation(shader_program, "model_matrix");
+
+    shader_program.normal_matrix = gl.getUniformLocation(shader_program, "normal_matrix");
+
+    shader_program.ambient_color = gl.getUniformLocation(shader_program, "ambient_color");
+
+    shader_program.lighting_direction = gl.getUniformLocation(shader_program, "lighting_direction");
+    shader_program.directional_color = gl.getUniformLocation(shader_program, "directional_color");
+
+    shader_program.use_lighting = gl.getUniformLocation(shader_program, "use_lighting");
 }
 
 
@@ -54,6 +68,8 @@ function initialize()
     }
 
     initialize_shaders();
+    mat4.translate(view_matrix, view_matrix, [0.0, 0.0, -3.0]);
+
     planet = new Planet(0.8);
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -72,7 +88,10 @@ function update()
 function render()
 {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.useProgram(shader_program);
+    gl.uniformMatrix4fv(shader_program.view_matrix, false, view_matrix);
     planet.render(shader_program, projection_matrix);
+    gl.useProgram(null);
 }
 
 

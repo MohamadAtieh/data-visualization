@@ -8,29 +8,56 @@
 
         <script type="text/javascript" src="js/lib/gl-matrix/common.js"></script>
         <script type="text/javascript" src="js/lib/gl-matrix/mat4.js"></script>
+        <script type="text/javascript" src="js/lib/gl-matrix/mat3.js"></script>
+        <script type="text/javascript" src="js/lib/gl-matrix/vec4.js"></script>
+        <script type="text/javascript" src="js/lib/gl-matrix/vec3.js"></script>
         <script type="text/javascript" src="js/lib/webgl-utils.js"></script>
         <script type="text/javascript" src="js/utils.js"></script>
+        <script type="text/javascript" src="js/input-handler.js"></script>
         <script type="text/javascript" src="js/planet.js"></script>
         <script type="text/javascript" src="js/graphics.js"></script>
 
         <script id="vertex-shader" type="x-shader/x-vertex">
             attribute vec3 position;
+            attribute vec3 normal;
 
-            uniform mat4 modelview_matrix;
+            uniform mat4 view_matrix;
+            uniform mat4 model_matrix;
             uniform mat4 projection_matrix;
+
+            uniform mat3 normal_matrix;
+
+            uniform vec3 ambient_color;
+
+            uniform vec3 lighting_direction;
+            uniform vec3 directional_color;
+
+            uniform bool use_lighting;
+
+            varying vec3 lighting_weighting;
 
             void main(void)
             {
-                gl_Position = projection_matrix * modelview_matrix * vec4(position, 1.0);
+                gl_Position = projection_matrix * view_matrix * model_matrix * vec4(position, 1.0);
+
+                if (use_lighting) {
+                    vec3 transformed_normal = normal_matrix * normal;
+                    float directional_light_weighting = max(dot(transformed_normal, lighting_direction), 0.0);
+                    lighting_weighting = ambient_color + directional_color * directional_light_weighting;
+                } else {
+                    lighting_weighting = vec3(1.0, 1.0, 1.0);
+                }
             }
         </script>
 
         <script id="fragment-shader" type="x-shader/x-fragment">
             precision mediump float;
 
+            varying vec3 lighting_weighting;
+
             void main(void)
             {
-                gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+                gl_FragColor = vec4(lighting_weighting, 1.0);
             }
         </script>
 
@@ -40,9 +67,11 @@
         <div id="sidebar">
             Menu<br/>
             Select<br/>
-            Toggle<br/>
+            <input type="checkbox" id="lighting" checked />Use lighting<br/>
         </div>
 
         <canvas id="canvas"></canvas>
+
+        <footer>Copyright &copy Chafic Najjar - 2014</footer>
     </body>
 </html>
