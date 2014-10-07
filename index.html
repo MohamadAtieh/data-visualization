@@ -20,6 +20,7 @@
         <script id="vertex-shader" type="x-shader/x-vertex">
             attribute vec3 position;
             attribute vec3 normal;
+            attribute vec2 texture;
 
             uniform mat4 view_matrix;
             uniform mat4 model_matrix;
@@ -34,11 +35,13 @@
 
             uniform bool use_lighting;
 
+            varying vec2 v_texture;
             varying vec3 lighting_weighting;
 
             void main(void)
             {
                 gl_Position = projection_matrix * view_matrix * model_matrix * vec4(position, 1.0);
+                v_texture = texture;
 
                 if (use_lighting) {
                     vec3 transformed_normal = normal_matrix * normal;
@@ -53,11 +56,15 @@
         <script id="fragment-shader" type="x-shader/x-fragment">
             precision mediump float;
 
+            varying vec2 v_texture;
             varying vec3 lighting_weighting;
+
+            uniform sampler2D sampler;
 
             void main(void)
             {
-                gl_FragColor = vec4(lighting_weighting, 1.0);
+                vec4 texture_color = texture2D(sampler, vec2(v_texture.s, v_texture.t));
+                gl_FragColor = vec4(texture_color.rgb * lighting_weighting, texture_color.a);
             }
         </script>
 
@@ -65,8 +72,9 @@
 
     <body onload="execute();">
         <div id="sidebar">
-            Menu<br/>
-            Select<br/>
+            Item 1<br/>
+            Item 2<br/>
+            Item 3<br/>
             <input type="checkbox" id="lighting" checked />Use lighting<br/>
         </div>
 

@@ -1,7 +1,33 @@
+function handle_loaded_texture(texture)
+{
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+    gl.generateMipmap(gl.TEXTURE_2D);
+
+    gl.bindTexture(gl.TEXTURE_2D, null);
+}
+
+var earth_texture;
+
+function initialize_texture()
+{
+    earth_texture = gl.createTexture();
+    earth_texture.image = new Image();
+    earth_texture.image.onload = function() {
+        handle_loaded_texture(earth_texture);
+    }
+    earth_texture.image.src = "assets/earth.jpg";
+}
+
+
 Planet.prototype.generate_mesh = function(n_longitude_bands, n_latitude_bands)
 {
     this.vertex_position_data = [];
     this.normal_data = [];
+    this.texture_coord_data = [];
     for (var i = 0; i <= n_latitude_bands; i++) {
         var theta = i * Math.PI / n_latitude_bands;
         var sin_theta = Math.sin(theta);
@@ -21,6 +47,9 @@ Planet.prototype.generate_mesh = function(n_longitude_bands, n_latitude_bands)
             this.normal_data.push(x);
             this.normal_data.push(y);
             this.normal_data.push(z);
+
+            this.texture_coord_data.push(u);
+            this.texture_coord_data.push(v);
 
             this.vertex_position_data.push(this.radius * x);
             this.vertex_position_data.push(this.radius * y);
@@ -71,12 +100,20 @@ function Planet(radius)
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.index_data), gl.STATIC_DRAW);
     this.planet_vertex_index_buffer.item_size = 1;
     this.planet_vertex_index_buffer.n_items = this.index_data.length;
+
+    // Texture
+    initialize_texture();
+    this.planet_texture_coord_buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.planet_texture_coord_buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.texture_coord_data), gl.STATIC_DRAW);
+    this.planet_texture_coord_buffer.item_size = 2;
+    this.planet_texture_coord_buffer.n_items = this.texture_coord_data.length / 2;
 }
 
 
 Planet.prototype.update = function()
 {
-    mat4.rotate(this.model_matrix, this.model_matrix, 0.1, [0.0, 1.0, 0.0]);
+    mat4.rotate(this.model_matrix, this.model_matrix, 0.005, [0.0, 1.0, 0.0]);
 } 
 
 
@@ -87,9 +124,9 @@ Planet.prototype.render = function(shader_program, projection_matrix)
     var lighting = document.getElementById("lighting").checked;
     gl.uniform1i(shader_program.use_lighting, lighting);
     if (lighting) {
-        gl.uniform3f(shader_program.ambient_color, 0.2, 0.2, 0.2);
+        gl.uniform3f(shader_program.ambient_color, 0.1, 0.1, 0.1);
 
-        var lighting_direction = [-1.0, -1.0, -1.0];
+        var lighting_direction = [-1.0, -1.0, 0.0];
 
         var adjusted_lighting_direction = vec3.create();
         vec3.normalize(adjusted_lighting_direction, lighting_direction);
@@ -99,10 +136,21 @@ Planet.prototype.render = function(shader_program, projection_matrix)
         gl.uniform3f(shader_program.directional_color, 0.7, 0.7, 0.7);
     }
 
+    // Texture
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, earth_texture);
+    gl.uniform1i(shader_program.sampler, 0);
+
     // Position
     gl.bindBuffer(gl.ARRAY_BUFFER, this.planet_vertex_position_buffer);
     gl.vertexAttribPointer(shader_program.position,
             this.planet_vertex_position_buffer.item_size,
+            gl.FLOAT, false, 0, 0);
+
+    // Texture
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.planet_texture_coord_buffer);
+    gl.vertexAttribPointer(shader_program.texture,
+            this.planet_texture_coord_buffer.item_size,
             gl.FLOAT, false, 0, 0);
 
     // Normal

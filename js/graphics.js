@@ -31,6 +31,9 @@ function initialize_shaders()
     shader_program.normal = gl.getAttribLocation(shader_program, "normal");
     gl.enableVertexAttribArray(shader_program.normal);
 
+    shader_program.texture = gl.getAttribLocation(shader_program, "texture");
+    gl.enableVertexAttribArray(shader_program.texture);
+
     shader_program.projection_matrix = gl.getUniformLocation(shader_program, "projection_matrix");
     shader_program.view_matrix = gl.getUniformLocation(shader_program, "view_matrix");
     shader_program.model_matrix = gl.getUniformLocation(shader_program, "model_matrix");
@@ -43,6 +46,8 @@ function initialize_shaders()
     shader_program.directional_color = gl.getUniformLocation(shader_program, "directional_color");
 
     shader_program.use_lighting = gl.getUniformLocation(shader_program, "use_lighting");
+
+    shader_program.sampler = gl.getUniformLocation(shader_program, "sampler");
 }
 
 
